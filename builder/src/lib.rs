@@ -46,9 +46,24 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+    let setters = fields.iter().map(|field| {
+        let name = &field.ident;
+        let ty = &field.ty;
+        quote! {
+            pub fn #name(&mut self, #name: #ty) -> &mut Self {
+                self.#name = Some(#name);
+                self
+            }
+        }
+    });
+
     let tokens = quote! {
         struct #builder_name {
             #(#builder_fields),*
+        }
+
+        impl #builder_name {
+            #(#setters)*
         }
 
         impl #name {
