@@ -41,6 +41,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     let build_fields = fields.iter().map(|field| {
         let name = &field.ident;
+        let field_name = name.as_ref().unwrap().to_string();
+        quote! {
+            #name: self.#name.take().ok_or_else(|| format!("field '{}' is not set", #field_name))?
+        }
+    });
+
+    let build_fields_none = fields.iter().map(|field| {
+        let name = &field.ident;
         quote! {
             #name: None
         }
@@ -64,12 +72,18 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
         impl #builder_name {
             #(#setters)*
+
+            pub fn build(&mut self) -> Result<#name, Box<dyn std::error::Error>> {
+                Ok(#name {
+                    #(#build_fields),*
+                })
+            }
         }
 
         impl #name {
             pub fn builder() -> #builder_name {
                 #builder_name {
-                    #(#build_fields),*
+                    #(#build_fields_none),*
                 }
             }
         }
