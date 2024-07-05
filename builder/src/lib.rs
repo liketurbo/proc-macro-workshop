@@ -22,7 +22,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         } else {
             quote! {
-                #name: Option<#ty>
+                #name: ::core::option::Option<#ty>
             }
         }
     });
@@ -32,7 +32,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let ty = &field.ty;
         if find_attr(&field.attrs, "each").is_some() {
             quote! {
-                #name: std::mem::take(&mut self.#name)
+                #name: ::core::mem::take(&mut self.#name)
             }
         } else if is_option(ty) {
             quote! {
@@ -50,11 +50,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let name = &field.ident;
         if find_attr(&field.attrs, "each").is_some() {
             quote! {
-                #name: Vec::new()
+                #name: ::std::vec::Vec::new()
             }
         } else {
             quote! {
-                #name: None
+                #name: ::core::option::Option::None
             }
         }
     });
@@ -85,7 +85,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 let setter_ty = extract_inner_ty(ty, "Option").unwrap_or(ty);
                 Ok(quote! {
                     pub fn #name(&mut self, #name: #setter_ty) -> &mut Self {
-                        self.#name = Some(#name);
+                        self.#name = ::core::option::Option::Some(#name);
                         self
                     }
                 })
@@ -106,7 +106,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         impl #builder_name {
             #(#setters)*
 
-            pub fn build(&mut self) -> Result<#name, Box<dyn std::error::Error>> {
+            pub fn build(&mut self) -> ::core::result::Result<#name, ::std::boxed::Box<dyn ::std::error::Error>> {
                 Ok(#name {
                     #(#build_fields),*
                 })
